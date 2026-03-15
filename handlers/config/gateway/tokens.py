@@ -814,7 +814,7 @@ async def handle_token_input(
                         )
 
                     if is_aeternity:
-                        # Aeternity: use gateway on-chain lookup (GeckoTerminal doesn't support AE)
+                        # Aeternity: use gateway lookup (middleware + on-chain fallback)
                         client = await get_config_manager().get_client_for_chat(
                             chat_id, preferred_server=get_active_server(context.user_data)
                         )
@@ -822,11 +822,13 @@ async def handle_token_input(
                             f"/gateway/networks/{network_id}/tokens/find/{address}"
                         )
                         token_info = result.get("token", result)
-                        symbol = token_info.get("symbol", "???")
+                        symbol = token_info.get("symbol", "")
                         decimals = token_info.get("decimals", 18)
                         name = token_info.get("name")
+                        if not symbol:
+                            raise ValueError("Gateway could not resolve token symbol")
                         logger.info(
-                            f"Fetched token from gateway on-chain: {symbol}, decimals={decimals}, name={name}"
+                            f"Fetched token from gateway: {symbol}, decimals={decimals}, name={name}"
                         )
                     else:
                         # Other chains: use GeckoTerminal

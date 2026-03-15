@@ -121,6 +121,11 @@ ETHEREUM_EXPLORERS = {
     "basescan": "https://basescan.org/tx/{tx_hash}",
 }
 
+AETERNITY_EXPLORERS = {
+    "aescan": "https://aescan.io/transactions/{tx_hash}",
+    "aescan_testnet": "https://testnet.aescan.io/transactions/{tx_hash}",
+}
+
 
 def get_explorer_url(tx_hash: str, network: str) -> Optional[str]:
     """Generate explorer URL for a transaction
@@ -139,6 +144,10 @@ def get_explorer_url(tx_hash: str, network: str) -> Optional[str]:
         # Use Orb explorer for Solana (Helius)
         cluster = "mainnet-beta" if "mainnet" in network else "devnet"
         return SOLANA_EXPLORERS["orb"].format(tx_hash=tx_hash, cluster=cluster)
+    elif network.startswith("aeternity"):
+        if "testnet" in network:
+            return AETERNITY_EXPLORERS["aescan_testnet"].format(tx_hash=tx_hash)
+        return AETERNITY_EXPLORERS["aescan"].format(tx_hash=tx_hash)
     elif "ethereum" in network or "mainnet" in network:
         if "arbitrum" in network:
             return ETHEREUM_EXPLORERS["arbiscan"].format(tx_hash=tx_hash)
@@ -161,6 +170,8 @@ def get_explorer_name(network: str) -> str:
     """
     if network.startswith("solana"):
         return "Orb"
+    elif network.startswith("aeternity"):
+        return "AeScan"
     elif "arbitrum" in network:
         return "Arbiscan"
     elif "base" in network:

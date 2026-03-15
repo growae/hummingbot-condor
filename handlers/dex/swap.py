@@ -764,6 +764,10 @@ async def handle_swap_connector_select(
                     params["network"] = "ethereum-mainnet"
                 elif chain == "ethereum" and networks:
                     params["network"] = f"ethereum-{networks[0]}"
+                elif chain == "aeternity" and "mainnet" in networks:
+                    params["network"] = "aeternity-mainnet"
+                elif chain == "aeternity" and networks:
+                    params["network"] = f"aeternity-{networks[0]}"
                 break
 
     # Save unified preference for /trade command (DEX stores network ID, not connector)

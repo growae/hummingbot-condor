@@ -17,6 +17,15 @@ from ..user_preferences import (
 from ._shared import escape_markdown_v2, logger
 
 
+def _chain_icon(chain: str) -> str:
+    """Return a display icon for a blockchain chain."""
+    if chain == "solana":
+        return "🟣"
+    elif chain == "aeternity":
+        return "🩷"
+    return "🔵"
+
+
 async def show_wallets_menu(query, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Show wallets management menu with list of connected wallets as clickable buttons"""
     try:
@@ -114,10 +123,7 @@ async def show_wallets_menu(query, context: ContextTypes.DEFAULT_TYPE) -> None:
                 display_addr = (
                     address[:6] + "..." + address[-4:] if len(address) > 14 else address
                 )
-                chain_icon = (
-                    "🟣" if chain == "solana" else "🔵"
-                )  # Solana purple, Ethereum blue
-                button_text = f"{chain_icon} {chain.title()}: {display_addr}"
+                button_text = f"{_chain_icon(chain)} {chain.title()}: {display_addr}"
                 wallet_buttons.append(
                     [
                         InlineKeyboardButton(
@@ -299,7 +305,7 @@ async def prompt_add_wallet_chain(query, context: ContextTypes.DEFAULT_TYPE) -> 
         )
 
         # Base blockchain chains (wallets are at blockchain level, not network level)
-        supported_chains = ["ethereum", "solana"]
+        supported_chains = ["ethereum", "solana", "aeternity"]
 
         message_text = (
             header + "*Select Chain:*\n\n"
@@ -346,7 +352,7 @@ async def prompt_create_wallet_chain(query, context: ContextTypes.DEFAULT_TYPE) 
         )
 
         # Base blockchain chains (wallets are at blockchain level, not network level)
-        supported_chains = ["ethereum", "solana"]
+        supported_chains = ["ethereum", "solana", "aeternity"]
 
         message_text = (
             header + "*Select Chain:*\n\n"
@@ -359,11 +365,10 @@ async def prompt_create_wallet_chain(query, context: ContextTypes.DEFAULT_TYPE) 
         chain_buttons = []
         for chain in supported_chains:
             chain_display = chain.replace("-", " ").title()
-            chain_icon = "🟣" if chain == "solana" else "🔵"
             chain_buttons.append(
                 [
                     InlineKeyboardButton(
-                        f"{chain_icon} {chain_display}",
+                        f"{_chain_icon(chain)} {chain_display}",
                         callback_data=f"gateway_wallet_create_chain_{chain}",
                     )
                 ]
@@ -491,7 +496,7 @@ async def show_wallet_details(
         )
 
         chain_escaped = escape_markdown_v2(chain.title())
-        chain_icon = "🟣" if chain == "solana" else "🔵"
+        chain_icon = _chain_icon(chain)
 
         # Get configured networks for this wallet
         enabled_networks = get_wallet_networks(context.user_data, address)

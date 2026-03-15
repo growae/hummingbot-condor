@@ -313,27 +313,32 @@ async def process_pool_info(
 
 
 def _build_balance_table_compact(gateway_data: dict) -> str:
-    """Build a compact balance table for display in pool list prompt (Solana tokens only)"""
+    """Build a compact balance table for display in pool list prompt"""
     if not gateway_data or not gateway_data.get("balances_by_network"):
         return r"_💡 Use /lp to load your wallet tokens_" + "\n\n"
 
-    # Find Solana balances specifically (Meteora is Solana-based)
-    solana_balances = None
+    chain_balances = None
+    chain_label = "Wallet"
     for network, balances in gateway_data["balances_by_network"].items():
-        if "solana" in network.lower() and balances:
-            solana_balances = balances
+        net_lower = network.lower()
+        if ("solana" in net_lower or "aeternity" in net_lower) and balances:
+            chain_balances = balances
+            if "aeternity" in net_lower:
+                chain_label = "Aeternity"
+            else:
+                chain_label = "Solana"
             break
 
-    if not solana_balances:
-        return r"_💡 No Solana tokens found_" + "\n\n"
+    if not chain_balances:
+        return r"_💡 No wallet tokens found_" + "\n\n"
 
-    lines = [r"💰 *Your Solana Tokens:*" + "\n"]
+    lines = [rf"💰 *Your {chain_label} Tokens:*" + "\n"]
     lines.append(f"```")
     lines.append(f"{'Token':<8} {'Amount':<12} {'Value':>8}")
     lines.append(f"{'─'*8} {'─'*12} {'─'*8}")
 
     # Show top 8 tokens
-    for bal in solana_balances[:8]:
+    for bal in chain_balances[:8]:
         token = bal["token"][:7]
         units = bal["units"]
         value = bal["value"]

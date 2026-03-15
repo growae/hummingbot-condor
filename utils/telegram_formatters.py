@@ -861,6 +861,8 @@ def _get_chain_from_network(network: str) -> str:
         return "arbitrum"
     elif network.startswith("base"):
         return "base"
+    elif network.startswith("aeternity"):
+        return "aeternity"
     # Fallback: first part before dash
     if "-" in network:
         return network.split("-")[0][:8]

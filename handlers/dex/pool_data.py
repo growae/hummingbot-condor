@@ -37,6 +37,8 @@ NETWORK_TO_GECKO = {
     "base-mainnet": "base",
     "bsc": "bsc",
     "binance-smart-chain": "bsc",
+    "aeternity": "aeternity",
+    "aeternity-mainnet": "aeternity",
     "polygon": "polygon_pos",
     "polygon-mainnet": "polygon_pos",
     "avalanche": "avalanche",

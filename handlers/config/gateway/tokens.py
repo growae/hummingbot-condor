@@ -21,6 +21,8 @@ NETWORK_TO_GECKO = {
     "base-mainnet": "base",
     "polygon": "polygon_pos",
     "polygon-mainnet": "polygon_pos",
+    "aeternity": "aeternity",
+    "aeternity-mainnet": "aeternity",
     "avalanche": "avax",
     "avalanche-mainnet": "avax",
     "optimism": "optimism",

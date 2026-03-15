@@ -104,6 +104,7 @@ async def _fetch_gateway_balances(client) -> dict:
         "base",
         "avalanche",
         "optimism",
+        "aeternity",
     ]
 
     data = {
@@ -533,9 +534,8 @@ async def show_liquidity_menu(
 
         # Show compact balances - vertical format with columns
         if gateway_data.get("balances_by_network"):
-            # Show Solana balances primarily (for LP)
             for network, balances in gateway_data["balances_by_network"].items():
-                if "solana" in network.lower():
+                if "solana" in network.lower() or "aeternity" in network.lower():
                     # Filter tokens with value >= $0.5
                     tokens = [
                         (bal["token"], _format_value(bal["value"]))

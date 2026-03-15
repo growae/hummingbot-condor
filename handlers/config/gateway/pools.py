@@ -766,8 +766,6 @@ async def handle_pool_input(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                     base=base,
                     quote=quote,
                     address=address,
-                    base_address=base_address,
-                    quote_address=quote_address,
                 )
 
                 success_text = (

@@ -502,7 +502,7 @@ def get_dex_connector(user_data: Dict, network: Optional[str] = None) -> str:
     elif network.startswith("ethereum"):
         return "uniswap"
     elif network.startswith("aeternity"):
-        return "superhero-dex"
+        return "superhero"
 
     # Fall back to user preference or default
     return get_dex_prefs(user_data).get("default_connector", DEFAULT_DEX_CONNECTOR)

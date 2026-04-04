@@ -40,14 +40,19 @@ function formatPrice(val: number) {
   if (val >= 1000) return "$" + val.toLocaleString("en-US", { maximumFractionDigits: 0 });
   if (val >= 1) return "$" + val.toFixed(2);
   if (val >= 0.01) return "$" + val.toFixed(4);
-  return "$" + val.toExponential(2);
+  if (val >= 0.0001) return "$" + val.toFixed(6);
+  const sig = val.toPrecision(4);
+  return "$" + parseFloat(sig).toString();
 }
 
 function formatAmount(val: number) {
   if (val === 0) return "0";
   if (Math.abs(val) >= 1_000_000) return (val / 1_000_000).toFixed(2) + "M";
   if (Math.abs(val) >= 10_000) return (val / 1_000).toFixed(1) + "K";
-  if (Math.abs(val) < 0.001) return val.toExponential(2);
+  if (Math.abs(val) < 0.001) {
+    const sig = val.toPrecision(4);
+    return parseFloat(sig).toString();
+  }
   return val.toLocaleString("en-US", { maximumFractionDigits: 4 });
 }
 

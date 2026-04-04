@@ -3,6 +3,9 @@ services:
     image: hummingbot/condor:latest
     container_name: condor-bot
     restart: unless-stopped
+    build: # Uncomment this build section and comment image to build Hummingbot locally
+      context: .
+      dockerfile: Dockerfile
     environment:
       TELEGRAM_TOKEN: ${TELEGRAM_TOKEN}
       ADMIN_USER_ID: ${ADMIN_USER_ID}

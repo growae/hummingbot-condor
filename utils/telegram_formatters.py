@@ -775,7 +775,8 @@ KNOWN_TOKENS = {
     "oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp": "ORE",
     # Meteora
     "METvsvVRapdj9cFLzq4Tr43xK4tAjQfwX76z3n6mWQL": "MET",
-    # Add more as needed
+    # Aeternity
+    "ct_J3zBY8xxjsRr3QojETNw48Eb38fjvEuJKkQ6KzECvubvEcvCa": "WAE",
 }
 
 # Reverse lookup: symbol -> address
@@ -788,8 +789,13 @@ def resolve_token_address(
     """
     Resolve a token symbol to its address.
 
+    Accepts:
+        - Known token symbols (e.g., "SOL", "USDC", "WAE")
+        - Raw contract addresses (Aeternity ct_/ak_ prefixes are passed through)
+        - Symbols found in the provided token_cache
+
     Args:
-        symbol: Token symbol to resolve (e.g., "SOL", "USDC")
+        symbol: Token symbol or contract address to resolve
         token_cache: Optional cache from Gateway tokens {address: symbol}
 
     Returns:
@@ -797,6 +803,10 @@ def resolve_token_address(
     """
     if not symbol:
         return None
+
+    # Raw Aeternity contract/account addresses are passed through directly
+    if symbol.startswith("ct_") or symbol.startswith("ak_"):
+        return symbol
 
     symbol_upper = symbol.upper()
 
@@ -861,6 +871,8 @@ def _get_chain_from_network(network: str) -> str:
         return "arbitrum"
     elif network.startswith("base"):
         return "base"
+    elif network.startswith("aeternity"):
+        return "aeternity"
     # Fallback: first part before dash
     if "-" in network:
         return network.split("-")[0][:8]

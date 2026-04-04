@@ -21,6 +21,8 @@ NETWORK_TO_GECKO = {
     "base-mainnet": "base",
     "polygon": "polygon_pos",
     "polygon-mainnet": "polygon_pos",
+    "aeternity": "aeternity",
+    "aeternity-mainnet": "aeternity",
     "avalanche": "avax",
     "avalanche-mainnet": "avax",
     "optimism": "optimism",
@@ -357,14 +359,21 @@ async def prompt_add_token(
         context.user_data["token_message_id"] = query.message.message_id
         context.user_data["token_chat_id"] = query.message.chat_id
 
+        is_ae = "aeternity" in network_id.lower()
+        if is_ae:
+            example = "`ct_J3zBY8xxjsRr3QojETNw48Eb38fjvEuJKkQ6KzECvubvEcvCa`"
+            source_note = "_\\(details fetched from the blockchain\\)_"
+        else:
+            example = "`9QFfgxdSqH5zT7j6rZb1y6SZhw2aFtcQu2r6BuYpump`"
+            source_note = "_\\(details will be fetched automatically\\)_"
+
         message_text = (
             f"➕ *Add Token to {network_escaped}*\n\n"
-            "*Option 1:* Just paste the token address\n"
-            "_\\(details will be fetched automatically\\)_\n\n"
+            f"*Option 1:* Just paste the token address\n"
+            f"{source_note}\n\n"
             "*Option 2:* Full format\n"
             "`address,symbol,decimals,name`\n\n"
-            "*Example:*\n"
-            "`9QFfgxdSqH5zT7j6rZb1y6SZhw2aFtcQu2r6BuYpump`\n\n"
+            f"*Example:*\n{example}\n\n"
             "⚠️ _Restart Gateway after adding for changes to take effect\\._"
         )
 
@@ -787,44 +796,64 @@ async def handle_token_input(
             token_input = update.message.text.strip()
             parts = [p.strip() for p in token_input.split(",")]
 
-            # Check if just an address (no commas) - try to fetch from GeckoTerminal
+            # Check if just an address (no commas) - try to fetch details automatically
             if len(parts) == 1 and len(token_input) > 20:
                 address = token_input
-                gecko_network = NETWORK_TO_GECKO.get(network_id, network_id)
+                is_aeternity = address.startswith("ct_") or address.startswith("ak_")
 
                 try:
                     # Show fetching message
                     if message_id and chat_id:
                         network_escaped = escape_markdown_v2(network_id)
+                        source = "blockchain" if is_aeternity else "GeckoTerminal"
                         await update.get_bot().edit_message_text(
                             chat_id=chat_id,
                             message_id=message_id,
-                            text=f"🔍 *Fetching token details\\.\\.\\.*\n\nFrom GeckoTerminal for {network_escaped}",
+                            text=f"🔍 *Fetching token details\\.\\.\\.*\n\nFrom {source} for {network_escaped}",
                             parse_mode="MarkdownV2",
                         )
 
-                    gecko_client = GeckoTerminalAsyncClient()
-                    result = await gecko_client.get_specific_token_on_network(
-                        gecko_network, address
-                    )
-
-                    # Extract token data
-                    if isinstance(result, dict):
-                        token_data = (
-                            result.get("data", result) if "data" in result else result
+                    if is_aeternity:
+                        # Aeternity: use gateway lookup (middleware + on-chain fallback)
+                        client = await get_config_manager().get_client_for_chat(
+                            chat_id, preferred_server=get_active_server(context.user_data)
                         )
-                        attrs = token_data.get("attributes", token_data)
-                        symbol = attrs.get("symbol", "???")
-                        decimals = attrs.get("decimals", 9)
-                        name = attrs.get("name")
+                        result = await client.gateway._post(
+                            f"/gateway/networks/{network_id}/tokens/find/{address}"
+                        )
+                        token_info = result.get("token", result)
+                        symbol = token_info.get("symbol", "")
+                        decimals = token_info.get("decimals", 18)
+                        name = token_info.get("name")
+                        if not symbol:
+                            raise ValueError("Gateway could not resolve token symbol")
                         logger.info(
-                            f"Fetched token from GeckoTerminal: {symbol}, decimals={decimals}, name={name}"
+                            f"Fetched token from gateway: {symbol}, decimals={decimals}, name={name}"
                         )
                     else:
-                        raise ValueError("Invalid response format from GeckoTerminal")
+                        # Other chains: use GeckoTerminal
+                        gecko_network = NETWORK_TO_GECKO.get(network_id, network_id)
+                        gecko_client = GeckoTerminalAsyncClient()
+                        result = await gecko_client.get_specific_token_on_network(
+                            gecko_network, address
+                        )
+
+                        if isinstance(result, dict):
+                            token_data = (
+                                result.get("data", result) if "data" in result else result
+                            )
+                            attrs = token_data.get("attributes", token_data)
+                            symbol = attrs.get("symbol", "???")
+                            decimals = attrs.get("decimals", 9)
+                            name = attrs.get("name")
+                            logger.info(
+                                f"Fetched token from GeckoTerminal: {symbol}, decimals={decimals}, name={name}"
+                            )
+                        else:
+                            raise ValueError("Invalid response format from GeckoTerminal")
 
                 except Exception as e:
-                    logger.warning(f"Failed to fetch token from GeckoTerminal: {e}")
+                    logger.warning(f"Failed to fetch token details: {e}")
                     await update.get_bot().send_message(
                         chat_id=chat_id,
                         text=f"❌ Could not fetch token details. Please use full format:\naddress,symbol,decimals,name",

@@ -77,9 +77,10 @@ def _build_main_menu_keyboard(bots_dict: Dict[str, Any]) -> InlineKeyboardMarkup
                 )
             keyboard.append(row)
 
-    # Action buttons - historical
+    # Action buttons
     keyboard.append(
         [
+            InlineKeyboardButton("🚀 Deploy", callback_data="bots:deploy_menu"),
             InlineKeyboardButton("📜 Historical", callback_data="bots:archived"),
         ]
     )

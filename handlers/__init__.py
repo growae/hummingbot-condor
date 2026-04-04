@@ -21,6 +21,7 @@ def is_gateway_network(connector_name: str) -> bool:
     gateway_patterns = [
         "solana",
         "ethereum",
+        "aeternity",
         "base",
         "arbitrum",
         "polygon",

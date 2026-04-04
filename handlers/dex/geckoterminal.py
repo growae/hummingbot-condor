@@ -1502,6 +1502,7 @@ GECKO_TO_GATEWAY_NETWORK = {
     "polygon_pos": "polygon-mainnet",
     "avalanche": "avalanche-mainnet",
     "optimism": "optimism-mainnet",
+    "aeternity": "aeternity-mainnet",
 }
 
 # Default connectors by network chain
@@ -1514,6 +1515,7 @@ NETWORK_DEFAULT_CONNECTOR = {
     "polygon_pos": "quickswap",
     "avalanche": "traderjoe",
     "optimism": "uniswap",
+    "aeternity": "superhero",
 }
 
 

@@ -186,6 +186,7 @@ async def _fetch_balances(client, refresh: bool = False) -> dict:
                             "base",
                             "avalanche",
                             "optimism",
+                            "aeternity",
                         ]
                     )
 

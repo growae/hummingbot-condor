@@ -420,13 +420,20 @@ async def prompt_add_pool(
         context.user_data["pool_message_id"] = query.message.message_id
         context.user_data["pool_chat_id"] = query.message.chat_id
 
+        # Show chain-appropriate example
+        if "aeternity" in network.lower() or connector_name.lower() == "superhero":
+            example = "`AMM,WAE,ct_tokenAddress,ct_poolAddress`"
+            tip = "\n\n_💡 Use token symbols \\(WAE\\) or ct\\_ contract addresses_"
+        else:
+            example = "`CLMM,SOL,USDC,8sLbNZoA1cfnvMJLPfp98ZLAnFSYCFApfJKMbiXNLwxj`"
+            tip = ""
+
         message_text = (
             f"➕ *Add Pool to {connector_escaped}*\n"
             f"Network: `{network_escaped}`\n\n"
             "*Enter pool details in this format:*\n"
             "`pool_type,base,quote,address`\n\n"
-            "*Example:*\n"
-            "`CLMM,SOL,USDC,8sLbNZoA1cfnvMJLPfp98ZLAnFSYCFApfJKMbiXNLwxj`"
+            f"*Example:*\n{example}{tip}"
         )
 
         keyboard = [
@@ -686,18 +693,39 @@ async def handle_pool_input(update: Update, context: ContextTypes.DEFAULT_TYPE) 
 
             pool_type, base, quote, address = parts
 
-            # Resolve token addresses from symbols
-            base_address = resolve_token_address(base)
-            quote_address = resolve_token_address(quote)
+            # Build token cache from gateway for the current network
+            token_cache = {}
+            try:
+                from config_manager import get_config_manager
+                client = await get_config_manager().get_client_for_chat(
+                    update.message.chat_id, preferred_server=get_active_server(context.user_data)
+                )
+                if hasattr(client.gateway, "get_network_tokens") and callable(
+                    client.gateway.get_network_tokens
+                ):
+                    response = await client.gateway.get_network_tokens(network)
+                    for token in (response.get("tokens", []) if response else []):
+                        addr = token.get("address", "")
+                        sym = token.get("symbol", "")
+                        if addr and sym:
+                            token_cache[addr] = sym
+            except Exception as e:
+                logger.debug(f"Could not fetch token cache for {network}: {e}")
+
+            # Resolve token addresses from symbols (or accept raw addresses)
+            base_address = resolve_token_address(base, token_cache)
+            quote_address = resolve_token_address(quote, token_cache)
 
             if not base_address:
                 await update.message.reply_text(
-                    f"❌ Unknown token symbol: {base}\nPlease use known tokens (SOL, USDC, USDT, etc.)"
+                    f"❌ Unknown token symbol: {base}\n"
+                    "Please use known token symbols or contract addresses (e.g., ct_... for Aeternity)"
                 )
                 return
             if not quote_address:
                 await update.message.reply_text(
-                    f"❌ Unknown token symbol: {quote}\nPlease use known tokens (SOL, USDC, USDT, etc.)"
+                    f"❌ Unknown token symbol: {quote}\n"
+                    "Please use known token symbols or contract addresses (e.g., ct_... for Aeternity)"
                 )
                 return
 
@@ -738,8 +766,6 @@ async def handle_pool_input(update: Update, context: ContextTypes.DEFAULT_TYPE) 
                     base=base,
                     quote=quote,
                     address=address,
-                    base_address=base_address,
-                    quote_address=quote_address,
                 )
 
                 success_text = (

@@ -40,6 +40,7 @@ def _is_gateway_network(connector_name: str) -> bool:
         "polygon",
         "optimism",
         "avalanche",
+        "aeternity",
         "mainnet",
         "devnet",
         "testnet",

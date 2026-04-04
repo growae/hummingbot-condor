@@ -501,6 +501,8 @@ def get_dex_connector(user_data: Dict, network: Optional[str] = None) -> str:
         return "jupiter"
     elif network.startswith("ethereum"):
         return "uniswap"
+    elif network.startswith("aeternity"):
+        return "superhero"
 
     # Fall back to user preference or default
     return get_dex_prefs(user_data).get("default_connector", DEFAULT_DEX_CONNECTOR)
@@ -593,6 +595,7 @@ def set_active_server(user_data: Dict, server_name: Optional[str]) -> None:
 # Default networks per chain
 DEFAULT_ETHEREUM_NETWORKS = ["ethereum-mainnet", "base", "arbitrum"]
 DEFAULT_SOLANA_NETWORKS = ["solana-mainnet-beta"]
+DEFAULT_AETERNITY_NETWORKS = ["aeternity-mainnet"]
 
 
 def get_gateway_prefs(user_data: Dict) -> GatewayPrefs:
@@ -664,6 +667,8 @@ def get_default_networks_for_chain(chain: str) -> list:
         return DEFAULT_ETHEREUM_NETWORKS.copy()
     elif chain == "solana":
         return DEFAULT_SOLANA_NETWORKS.copy()
+    elif chain == "aeternity":
+        return DEFAULT_AETERNITY_NETWORKS.copy()
     return []
 
 
@@ -689,6 +694,11 @@ def get_all_networks_for_chain(chain: str) -> list:
         return [
             "solana-mainnet-beta",
             "solana-devnet",
+        ]
+    elif chain == "aeternity":
+        return [
+            "aeternity-mainnet",
+            "aeternity-testnet",
         ]
     return []
 

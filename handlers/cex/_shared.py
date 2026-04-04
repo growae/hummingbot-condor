@@ -101,6 +101,7 @@ def is_cex_connector(connector_name: str) -> bool:
         "base",
         "optimism",
         "avalanche",
+        "aeternity",
     ]
     return not any(connector_lower.startswith(prefix) for prefix in dex_prefixes)
 

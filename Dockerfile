@@ -31,5 +31,9 @@ RUN uv sync --frozen --no-dev --no-editable
 RUN uv run python -c "import kaleido; kaleido.get_chrome_sync()" || true
 
 COPY . .
+
+# Build React frontend
+RUN cd frontend && npm install && npm run build
+
 VOLUME ["/app/data"]
 CMD ["uv", "run", "python", "main.py"]
